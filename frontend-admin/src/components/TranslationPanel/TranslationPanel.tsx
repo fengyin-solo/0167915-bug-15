@@ -100,7 +100,7 @@ const translateText = (text: string, sourceLang: string, targetLang: string): st
 
 export const TranslationPanel: React.FC = () => {
   const inputText = useAppStore(state => state.inputText);
-  const translationHistory = useAppStore(state => state.translationHistory);
+  const sessionRecords = useAppStore(state => state.sessionRecords);
   const isTranslating = useAppStore(state => state.isTranslating);
   const sourceLang = useAppStore(state => state.sourceLang);
   const targetLang = useAppStore(state => state.targetLang);
@@ -109,12 +109,6 @@ export const TranslationPanel: React.FC = () => {
   const addSessionRecord = useAppStore(state => state.addSessionRecord);
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [localHistory, setLocalHistory] = useState<Array<{
-    id: string;
-    sourceText: string;
-    targetText: string;
-    timestamp: Date;
-  }>>([]);
   const [localTranslating, setLocalTranslating] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,16 +132,7 @@ export const TranslationPanel: React.FC = () => {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const translated = translateText(inputText, sourceLang, targetLang);
-    
-    const newRecord = {
-      id: Date.now().toString(),
-      sourceText: inputText,
-      targetText: translated,
-      timestamp: new Date(),
-    };
-    
-    setLocalHistory(prev => [newRecord, ...prev]);
-    
+
     addSessionRecord({
       type: 'manual',
       sourceText: inputText,
@@ -182,8 +167,8 @@ export const TranslationPanel: React.FC = () => {
   const charCount = inputText.length;
   const isOverLimit = charCount > MAX_INPUT_LENGTH;
   
-  // 合并历史记录
-  const allHistory = [...localHistory, ...translationHistory];
+  // 翻译历史与会话记录中心共用同一份持久化数据（仅手动翻译记录，新的在前）
+  const allHistory = sessionRecords.filter(record => record.type === 'manual');
 
   return (
     <aside className="w-full h-full flex-shrink-0 glass-panel rounded-2xl p-6 flex flex-col gap-6 overflow-hidden">
