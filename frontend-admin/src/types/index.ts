@@ -14,16 +14,6 @@ export interface SubtitleEntry {
   isActive: boolean;
 }
 
-// 翻译结果
-export interface TranslationResult {
-  id: string;
-  sourceText: string;
-  targetText: string;
-  sourceLang: string;
-  targetLang: string;
-  timestamp: Date;
-}
-
 // 音频设置
 export interface AudioSettings {
   volume: number;
@@ -83,7 +73,6 @@ export interface AppState {
   
   // 翻译
   inputText: string;
-  translationHistory: TranslationResult[];
   isTranslating: boolean;
   
   // Toast

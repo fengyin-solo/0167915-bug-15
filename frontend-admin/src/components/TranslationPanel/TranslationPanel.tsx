@@ -100,26 +100,20 @@ const translateText = (text: string, sourceLang: string, targetLang: string): st
 
 export const TranslationPanel: React.FC = () => {
   const inputText = useAppStore(state => state.inputText);
-  const translationHistory = useAppStore(state => state.translationHistory);
   const isTranslating = useAppStore(state => state.isTranslating);
   const sourceLang = useAppStore(state => state.sourceLang);
   const targetLang = useAppStore(state => state.targetLang);
   const setInputText = useAppStore(state => state.setInputText);
   const addToast = useAppStore(state => state.addToast);
   const addSessionRecord = useAppStore(state => state.addSessionRecord);
+  const sessionRecords = useAppStore(state => state.sessionRecords);
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [localHistory, setLocalHistory] = useState<Array<{
-    id: string;
-    sourceText: string;
-    targetText: string;
-    timestamp: Date;
-  }>>([]);
   const [localTranslating, setLocalTranslating] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!inputText.trim()) {
       addToast('warning', '请输入要翻译的文本');
       return;
@@ -133,21 +127,12 @@ export const TranslationPanel: React.FC = () => {
     }
 
     setLocalTranslating(true);
-    
+
     // 模拟翻译延迟
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const translated = translateText(inputText, sourceLang, targetLang);
-    
-    const newRecord = {
-      id: Date.now().toString(),
-      sourceText: inputText,
-      targetText: translated,
-      timestamp: new Date(),
-    };
-    
-    setLocalHistory(prev => [newRecord, ...prev]);
-    
+
     addSessionRecord({
       type: 'manual',
       sourceText: inputText,
@@ -155,7 +140,7 @@ export const TranslationPanel: React.FC = () => {
       sourceLang,
       targetLang,
     });
-    
+
     setInputText('');
     setLocalTranslating(false);
     addToast('success', '翻译完成');
@@ -181,9 +166,10 @@ export const TranslationPanel: React.FC = () => {
 
   const charCount = inputText.length;
   const isOverLimit = charCount > MAX_INPUT_LENGTH;
-  
-  // 合并历史记录
-  const allHistory = [...localHistory, ...translationHistory];
+
+  // 右侧翻译历史与“会话记录”共用同一份数据（sessionRecords），
+  // 仅展示手动翻译记录；记录已按最新在前的顺序保存
+  const allHistory = sessionRecords.filter(r => r.type === 'manual');
 
   return (
     <aside className="w-full h-full flex-shrink-0 glass-panel rounded-2xl p-6 flex flex-col gap-6 overflow-hidden">

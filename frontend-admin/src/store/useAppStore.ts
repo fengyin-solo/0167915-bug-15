@@ -43,7 +43,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   // 翻译状态
   inputText: '',
-  translationHistory: [],
   isTranslating: false,
   
   // Toast状态
@@ -109,35 +108,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   translate: async () => {
     const { inputText, sourceLang, targetLang, addToast, addSessionRecord } = get();
-    
+
     if (!inputText.trim()) {
       addToast('warning', '请输入要翻译的文本');
       return;
     }
-    
+
     set({ isTranslating: true });
-    
+
     try {
       // 模拟翻译
       await new Promise(resolve => setTimeout(resolve, 800));
       const result = `[Translated] ${inputText}`;
-      
-      set(state => ({
-        translationHistory: [
-          {
-            id: generateId(),
-            sourceText: inputText,
-            targetText: result,
-            sourceLang,
-            targetLang,
-            timestamp: new Date(),
-          },
-          ...state.translationHistory,
-        ],
-        inputText: '',
-        isTranslating: false,
-      }));
-      
+
       addSessionRecord({
         type: 'manual',
         sourceText: inputText,
@@ -145,7 +128,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         sourceLang,
         targetLang,
       });
-      
+
+      set({ inputText: '', isTranslating: false });
       addToast('success', '翻译完成');
     } catch {
       set({ isTranslating: false });
